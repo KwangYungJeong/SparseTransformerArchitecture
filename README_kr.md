@@ -127,6 +127,32 @@ fixed 패턴은 다음을 사용합니다:
 
 ![Dilated Sliding Window Pattern](images/dilated_sliding_window_mask_128x128.png)
 
+## 하드웨어 시뮬레이션 및 분석 (`spt/` 디렉토리)
+
+`spt/` 디렉토리는 딥러닝에서 행렬 곱셈을 가속화하는 일반적인 하드웨어 아키텍처인 PE(Processing Element) 배열에서 희소 어텐션 패턴의 성능을 시뮬레이션하고 분석하기 위한 스크립트와 생성된 플롯을 포함합니다. 이 시뮬레이션은 다양한 데이터 흐름 전략(행 단위, 열 단위)을 평가하고 사이클 수 및 PE 활용도에 대한 통찰력을 제공합니다.
+
+### 주요 시뮬레이션 스크립트:
+- `spt_mask.py`: 시뮬레이션 환경 내에서 사용되는, 메인 `sparse_transformer_mask.py`와 유사한 마스크 생성 함수를 제공합니다.
+- `spt_sim.py`: 희소 어텐션을 위한 기본 PE 배열 시뮬레이터입니다.
+- `spt_row.py` & `spt_col.py`: 메모리(DRAM/SRAM) 및 DMA 모델링을 포함하여 보다 상세한 행 단위 및 열 단위 데이터 흐름 시뮬레이션을 구현합니다.
+- `spt_sim4.py`: 다양한 구성(다른 마스크 유형, 크기, 임베딩 차원)을 실행하고 성능 분석 플롯을 생성하는 포괄적인 시뮬레이션 스크립트입니다.
+
+### 성능 분석 플롯 (`spt/plots/`):
+`spt/plots/` 하위 디렉토리에는 시뮬레이션 스크립트에 의해 생성된 수많은 시각화 자료가 포함되어 있으며, 하드웨어 성능 지표를 보여줍니다. 이 플롯은 다양한 행렬 크기(예: 16x16, 32x32, 64x64) 및 임베딩 차원(예: 16, 32, 64)에 대해 사용할 수 있습니다.
+
+- **사이클 비교 플롯 (`cycle_comp_*.png`)**: 다양한 어텐션 패턴에 필요한 총 사이클을 보여줍니다.
+- **PE 사이클 활용도 플롯 (`pe_cycle_util_*.png`)**: 계산의 다양한 단계에서 처리 요소가 얼마나 효율적으로 활용되는지 보여줍니다.
+- **행 PE 활용도 플롯 (`row_pe_util_*.png`)**: 특히 행 단위 처리에서 PE 활용도에 대한 통찰력을 제공합니다.
+- **총 사이클 막대 차트 (`*_total_cycle_bar_*.png`)**: 총 계산 및 DRAM 접근 사이클을 요약합니다.
+
+#### 예시 플롯:
+
+![Strided Pattern Cycle Comparison](spt/cycle_comp_strided.png)
+*예시: Strided 패턴에 대한 사이클 비교*
+
+![Fixed Pattern PE Cycle Utilization (1024 tokens)](spt/pe_cycle_util_fixed_1024.png)
+*예시: 1024 토큰을 사용한 Fixed 패턴의 PE 사이클 활용도*
+
 ## 구현 세부사항
 
 이 프로젝트는 다음을 제공하는 단일 Python 파일로 구현되어 있습니다:
